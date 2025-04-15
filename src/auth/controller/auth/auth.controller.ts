@@ -28,7 +28,7 @@ export class AuthController {
         return otp;
 
     }
-    @MessagePattern({ cmd: 'varifyOtpp' })
+    @MessagePattern({ cmd: 'varifyOtp' })
    async varifyOtp(@Body() varifyOtpData: VarifyOtpDto) {
         const otp = await this.userService.varifyOtp(varifyOtpData)
         return otp;

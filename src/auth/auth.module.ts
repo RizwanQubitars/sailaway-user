@@ -25,9 +25,9 @@ import { Otp, otpSchema } from 'src/schemas/Otp.schema';
     secret: 'iamsecure123jwt@',   // should be in .env
     signOptions: { expiresIn: '1h' }, // or whatever you need
   }),
-  MailService
   ],
   controllers: [AuthController],
-  providers: [AuthService]
+  providers: [AuthService, MailService],
+  exports: [MailService]
 })
 export class AuthModule {}
