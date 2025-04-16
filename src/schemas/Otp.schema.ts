@@ -12,7 +12,7 @@ export class Otp {
     @Prop({required: true})
     otp: number
 
-    @Prop({required: true})
+    @Prop({required: true, expires: 0})
     expireIn: Date
 }
 
