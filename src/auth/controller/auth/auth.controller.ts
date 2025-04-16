@@ -2,10 +2,11 @@ import { Body, Controller, Inject, UsePipes, ValidationPipe } from '@nestjs/comm
 import { ClientProxy, MessagePattern } from '@nestjs/microservices';
 import { CreateUserDto, resetPasswordDto, SendOtpDto, SignInUserDto, VarifyOtpDto } from 'src/auth/dtos/CreateUser.dto';
 import { AuthService } from 'src/auth/service/auth/auth.service';
+import { successResponse } from 'src/common/helperFunctions/response.helper';
 
 @Controller('auth')
 export class AuthController {
-    
+
     constructor(
         @Inject('NATS_SERVICE') private natsClient: ClientProxy,
         private userService: AuthService,
@@ -15,27 +16,47 @@ export class AuthController {
     @UsePipes(new ValidationPipe())
     async createUser(@Body() userData: CreateUserDto) {
         const createUser = await this.userService.createUser(userData);
-        return createUser;
+        return successResponse({
+            status: 200,
+            message: "User Created Succeed",
+            data: {}
+        });
     }
     @MessagePattern({ cmd: 'signInUser' })
-   async signInUser(@Body() signInUserData: SignInUserDto) {
+    async signInUser(@Body() signInUserData: SignInUserDto) {
         const user = await this.userService.signIn(signInUserData)
-        return user;
+        return successResponse({
+            status: 200,
+            message: "JWT token Created Succeed",
+            data: user
+        });
     }
     @MessagePattern({ cmd: 'sendOtp' })
-   async sendOtp(@Body() otpData: SendOtpDto) {
+    async sendOtp(@Body() otpData: SendOtpDto) {
         const otp = await this.userService.sendOtp(otpData)
-        return otp;
+        return successResponse({
+            status: 200,
+            message: "OTP send Succeed",
+            data: {}
+        });
 
     }
     @MessagePattern({ cmd: 'varifyOtp' })
-   async varifyOtp(@Body() varifyOtpData: VarifyOtpDto) {
+    async varifyOtp(@Body() varifyOtpData: VarifyOtpDto) {
         const otp = await this.userService.varifyOtp(varifyOtpData)
-        return otp;
+        return successResponse({
+            status: 200,
+            message: "OTP varified Succeed",
+            data: otp
+        });
     }
     @MessagePattern({ cmd: 'resetPassword' })
     async resetPassword(@Body() resetPasswordData: resetPasswordDto) {
         const resetPassword = this.userService.resetPassword(resetPasswordData);
-        return resetPassword;
+        return successResponse({
+            status: 200,
+            message: "Password updated Succeed",
+            data: {}
+        });
     }
 }

@@ -1,43 +1,25 @@
-import {
-    Injectable,
-    NestInterceptor,
-    ExecutionContext,
-    CallHandler,
-    HttpException,
-    HttpStatus
-} from '@nestjs/common';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { ArgumentsHost, Catch, ExceptionFilter, Logger } from '@nestjs/common';
+import { RpcException } from '@nestjs/microservices';
 
-function doException(err) {
-    try {
-        if(err.status === 'error'){
-            return new HttpException("something went wrong", HttpStatus.BAD_GATEWAY);
-        }else{
-            var error = err.error;
+@Catch()
+export class AllExceptionsFilter implements ExceptionFilter {
+  private readonly logger = new Logger(AllExceptionsFilter.name);
 
-            if(err.error) {
-                error = err.error;
-            }
+  catch(exception: any, host: ArgumentsHost) {
+    const ctx = host.switchToRpc();
+    const data = ctx.getData();
 
-            if(err.response && err.response.error){
-                error = err.response.error;
-            }
-            return new HttpException(error, err.status);
-        }
-    } 
-    catch {
-        return new HttpException("something went wrong", HttpStatus.BAD_GATEWAY);
+    this.logger.error(
+      `Exception thrown: ${exception.message || exception}`,
+      JSON.stringify(data),
+    );
 
+    // If it's a known RpcException, return it
+    if (exception instanceof RpcException) {
+      return exception;
     }
-}
-@Injectable()
-export class ErrorInterceptor implements NestInterceptor {
-    intercept(context: ExecutionContext, next: CallHandler<any>): Observable<any> | Promise<Observable<any>> {
-        return next.handle().pipe(
-            catchError(err => {
-                return throwError(doException(err));
-            })
-        )
-    }
+
+    // Otherwise, wrap it into RpcException
+    return new RpcException('Internal server error');
+  }
 }

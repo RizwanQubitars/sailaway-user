@@ -25,7 +25,7 @@ export class AuthService {
     async createUser(userData: CreateUserType) {
         const user = await this.userModel.findOne({ email: userData.email });
 
-        if (user) { throw new RpcException(new ConflictException('User already exists')) }
+        if (user) { throw new RpcException(new HttpException('User already exist', HttpStatus.ALREADY_REPORTED)) }
 
         const newUser = new this.userModel(
             {
@@ -41,10 +41,10 @@ export class AuthService {
 
     async signIn(signInDto: SignInUserDto) {
         const user = await this.userModel.findOne({ email: signInDto.email });
-        if (!user) { throw new RpcException(new ConflictException('Invalid Email')) }
+        if (!user) { throw new RpcException(new HttpException('Invalid Email', HttpStatus.NOT_FOUND)) }
 
         const varifyPassword = await bcrypt.compare(signInDto.password, user.password)
-        if (!varifyPassword) { throw new RpcException(new ConflictException('Invalid Password')) }
+        if (!varifyPassword) { throw new RpcException(new HttpException('Invalid Password', HttpStatus.NOT_FOUND)) }
 
         // Generate JWT access token
         const payload = { email: user.email, id: user.userID };
@@ -52,7 +52,6 @@ export class AuthService {
         return accessToken;
     }
     async sendOtp(otpDto: SendOtpDto) {
-        const user = await this.userModel.findOne({ email: otpDto.email });
         const otpNo = Math.floor(1000 + Math.random() * 9000);
 
         await this.mailService.sendMail(
@@ -79,9 +78,8 @@ export class AuthService {
     }
     async varifyOtp(otpDto: VarifyOtpDto) {
         const otp = await this.otpModel.findOne({ email: otpDto.email });
-        if (!otp) { throw new RpcException(new ConflictException('Invalid Otp')) }
-        if (otp.expireIn < new Date()) { throw new RpcException(new ConflictException('Invalid is expired')) }
-
+        if (!otp) { throw new RpcException(new HttpException('OTP not found', HttpStatus.NOT_FOUND)) }
+        if (otp.expireIn < new Date()){ throw new RpcException(new HttpException('OTP is expired', HttpStatus.CONFLICT)) }
         let matchotp = false;
         if(otpDto.otp === otp.otp) matchotp = true
         return matchotp;

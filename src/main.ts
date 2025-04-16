@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-import { ErrorInterceptor } from './intercepters/error.interceptor';
+import { AllExceptionsFilter } from './intercepters/error.interceptor';
 
 async function bootstrap() {
   console.log('user server is listning')
@@ -14,7 +14,7 @@ async function bootstrap() {
       },
     },
   );
-  app.useGlobalInterceptors(new ErrorInterceptor());
+  app.useGlobalFilters(new AllExceptionsFilter());
   await app.listen();
 }
 bootstrap();
