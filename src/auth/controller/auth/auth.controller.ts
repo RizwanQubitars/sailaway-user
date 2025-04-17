@@ -22,6 +22,15 @@ export class AuthController {
             data: {}
         });
     }
+    @MessagePattern({ cmd: 'varifySignUpUser' })
+    async varifyUserEmail(@Body() userEmailData: VarifyOtpDto) {
+        const result = await this.userService.varifySignupOtp(userEmailData);
+        return successResponse({
+            status: 200,
+            message: "User email varified Succeed",
+            data: result
+        });
+    }
     @MessagePattern({ cmd: 'signInUser' })
     async signInUser(@Body() signInUserData: SignInUserDto) {
         const user = await this.userService.signIn(signInUserData)
