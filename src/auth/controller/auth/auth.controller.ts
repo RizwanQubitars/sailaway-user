@@ -16,6 +16,7 @@ export class AuthController {
     @UsePipes(new ValidationPipe())
     async createUser(@Body() userData: CreateUserDto) {
         const createUser = await this.userService.createUser(userData);
+        if(createUser) { await this.userService.sendOtp(createUser)}
         return successResponse({
             status: 200,
             message: "User Created Succeed",
